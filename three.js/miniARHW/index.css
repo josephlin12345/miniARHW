@@ -1,0 +1,23 @@
+.info {
+  margin: 50px 0px 0px 50px;
+}
+
+.content {
+  margin: 20px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.link {
+  text-decoration: none;
+  margin: 10px;
+}
+
+.gif {
+  width: 200px;
+}
+
+.work {
+  border: 2px solid black;
+}
