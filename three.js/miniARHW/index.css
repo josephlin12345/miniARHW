@@ -1,21 +1,22 @@
 .info {
-  margin: 50px 0px 0px 50px;
+  margin: 20px 0px 0px 20px;
 }
 
 .content {
   margin: 20px;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 20px;
 }
 
 .link {
   text-decoration: none;
   margin: 10px;
+  position: absolute;
 }
 
 .gif {
-  width: 600px;
+  width: 320px;
 }
 
 .work {
