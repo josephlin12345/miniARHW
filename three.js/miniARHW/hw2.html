@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<head>
+  <!-- three.js library -->
+  <script src='../examples/vendor/three.js/build/three.min.js'></script>
+  <script src="../examples/vendor/three.js/examples/js/libs/stats.min.js"></script>
+  <!-- ar.js -->
+  <script src="../build/ar.js"></script>
+  <script>THREEx.ArToolkitContext.baseURL = '../'</script>
+</head>
+<body style='margin : 0px; overflow: hidden;'>
+  <script>
+    // global variables
+    var camera, scene, renderer;
+    var stats;
+    var arToolKitSource, arToolKitContext;
+    var circle, arrow;
+    var angle = 0;
+    var isSpin = true;
+    var omega = 0;
+    const radius = 0.5;
+
+    init();
+    animate();
+
+    function init() {
+			// init renderer
+			renderer	= new THREE.WebGLRenderer({
+				// antialias	: true,
+				alpha: true
+			});
+			renderer.setClearColor(new THREE.Color('lightgrey'), 0)
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			document.body.appendChild(renderer.domElement);
+
+			stats = new Stats();
+			document.body.appendChild(stats.dom);
+
+			// init scene and camera
+			scene	= new THREE.Scene();
+			// Create a BASIC camera
+			camera = new THREE.Camera();
+
+			arToolkitSource = new THREEx.ArToolkitSource({
+				// to read from the webcam 
+				sourceType : 'webcam',
+			})
+
+			arToolkitSource.init(function onReady(){
+				onResize()
+			})
+			
+			// handle resize
+			window.addEventListener('resize', function(){
+				onResize()
+			})
+			function onResize(){
+				arToolkitSource.onResize()
+				arToolkitSource.copySizeTo(renderer.domElement)	
+				if( arToolkitContext.arController !== null ){
+					arToolkitSource.copySizeTo(arToolkitContext.arController.canvas)	
+				}
+			}
+
+			arToolkitContext = new THREEx.ArToolkitContext({
+				cameraParametersUrl: THREEx.ArToolkitContext.baseURL + '../data/data/camera_para.dat',
+				detectionMode: 'mono',
+				maxDetectionRate: 30,
+				canvasWidth: 80*3,
+				canvasHeight: 60*3,
+			})
+			// initialize it
+			arToolkitContext.init(function onCompleted(){
+				// copy projection matrix to camera
+				camera.projectionMatrix.copy( arToolkitContext.getProjectionMatrix() );
+			})
+
+      markerHiro = addMarkerHiro();
+			scene.add(markerHiro);
+
+      circle = addCircle();
+      markerHiro.add(circle);
+
+      arrow = addArrow();
+      markerHiro.add(arrow);
+    }
+
+    function addMarkerHiro(){
+			const markerRoot = new THREE.Group();
+
+			new THREEx.ArMarkerControls(arToolkitContext, markerRoot, {
+				type : 'pattern',
+				patternUrl : THREEx.ArToolkitContext.baseURL + '../data/data/patt.hiro'
+			})
+
+			return markerRoot;
+		}
+
+    function addArrow() {
+      const dir = new THREE.Vector3(0, 1, 0);
+      dir.normalize();
+      const origin = new THREE.Vector3(0, 0, 0);
+      const hex = 0x000000;
+      const arrow = new THREE.ArrowHelper(dir, origin, radius, hex, 0.2, 0.1);
+      arrow.rotateX(-Math.PI / 2);
+
+      return arrow;
+    }
+
+    function addCircle() {
+      const group = new THREE.Group();
+      
+      const geometry0 = new THREE.CircleGeometry(radius, 32, Math.PI/2, 2*Math.PI/3);
+      const material0 = new THREE.MeshBasicMaterial({ color: 0xff0000, side: THREE.DoubleSide });
+      const circle0 = new THREE.Mesh(geometry0, material0);
+      group.add(circle0);
+
+      const geometry1 = new THREE.CircleGeometry(radius, 32, Math.PI/2 + 2/3*Math.PI, 2*Math.PI/3);
+      const material1 = new THREE.MeshBasicMaterial({ color: 0x00ff00, side: THREE.DoubleSide });
+      const circle1 = new THREE.Mesh(geometry1, material1);
+      group.add(circle1);
+
+      const geometry2 = new THREE.CircleGeometry(radius, 32, Math.PI/2 - 2/3*Math.PI, 2*Math.PI/3);
+      const material2 = new THREE.MeshBasicMaterial({ color: 0x0000ff, side: THREE.DoubleSide });
+      const circle2 = new THREE.Mesh(geometry2, material2);
+      group.add(circle2);
+
+      group.rotateX(-Math.PI / 2);
+
+      return group;
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      stats.update();
+
+      const dt = 0.2;
+      const maxOmega = 3;
+      if (isSpin) {
+        omega += 0.5*dt;
+      }
+      else {
+        omega -= 0.2*dt;
+      }
+      omega = clamp(omega, 0, maxOmega);
+      
+      angle += omega * dt;
+      circle.rotation.z = angle;
+
+      // const theta = (angle * (180 / Math.PI)) % 360;
+      // angle * (180 / Math.PI) <= too big. Inefficient?
+      const theta = angle % (2 * Math.PI) * (180 / Math.PI);
+      const text = document.getElementById('text');
+      if(theta >= 0 && theta < 120) {
+        text.style.color = 'blue';
+        text.innerText = 'blue';
+      }
+      else if(theta >= 120 && theta < 240) {
+        text.style.color = 'green';
+        text.innerText = 'green';
+      }
+      else {
+        text.style.color = 'red';
+        text.innerText = 'red';
+      }
+
+      if(arToolkitSource.ready === false)	return
+			arToolkitContext.update(arToolkitSource.domElement);
+
+      renderer.render(scene, camera);
+    }
+
+    function toggle() {
+      isSpin = !isSpin;
+      document.getElementById('btn').innerText = isSpin ? 'stop' : 'spin';
+    }
+
+    function clamp (x, xLo, xHi) {
+      if (x < xLo) return xLo;
+      if (x > xHi) return xHi;
+      else return x;
+    }
+  </script>
+  <button id="btn" onclick="toggle()" style="position: absolute; top: 10%; left: 10%; width: 100px; color: red;">stop</button>
+  <p id="text" style="position: absolute; top: 10%; left: 10%; font-size: xx-large;"></p>
+</body>

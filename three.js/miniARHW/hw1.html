@@ -1,141 +1,117 @@
 <!DOCTYPE html>
-<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+<head>
+	<!-- three.js library -->
+	<script src='../examples/vendor/three.js/build/three.min.js'></script>
+	<script src="../examples/vendor/three.js/examples/js/libs/stats.min.js"></script>
+	<!-- ar.js -->
+	<script src="../build/ar.js"></script>
+	<script>THREEx.ArToolkitContext.baseURL = '../'</script>
+</head>
+<body style='margin : 0px; overflow: hidden;'>
+	<script>
+		// global variables
+		var renderer, scene, camera;
+		var stats;
+		var arToolKitSource, arToolKitContext;
+		var markerHiro;
+		var theta = 0;
 
-<!-- three.js library -->
-<script src='../examples/vendor/three.js/build/three.min.js'></script>
-<script src="../examples/vendor/three.js/examples/js/libs/stats.min.js"></script>
-<!-- ar.js -->
-<script src="../build/ar.js"></script>
-<script>THREEx.ArToolkitContext.baseURL = '../'</script>
+		init();
+		animate();
 
-<body style='margin : 0px; overflow: hidden; font-family: Monospace;'>
-<div style='position: absolute; top: 10px; width:100%; text-align: center; z-index: 1;'>
-<a href="https://github.com/jeromeetienne/AR.js/" target="_blank">AR.js</a>
-	 - three.js<br>
-Minimal Version
-</div>
+		function init() {
+			// init renderer
+			renderer	= new THREE.WebGLRenderer({
+				// antialias	: true,
+				alpha: true
+			});
+			renderer.setClearColor(new THREE.Color('lightgrey'), 0)
+			renderer.setSize(window.innerWidth, window.innerHeight);
+			document.body.appendChild(renderer.domElement);
 
-<script>
+			stats = new Stats();
+			document.body.appendChild(stats.dom);
 
-// global variables
-var renderer, scene, camera;
-var stats;
-var arToolKitSource, arToolKitContext;
-var markerHiro;
+			// init scene and camera
+			scene	= new THREE.Scene();
+			// Create a BASIC camera
+			camera = new THREE.Camera();
 
-var theta = 0;
+			arToolkitSource = new THREEx.ArToolkitSource({
+				// to read from the webcam 
+				sourceType : 'webcam',
+			})
 
-init();
-animate();
+			arToolkitSource.init(function onReady(){
+				onResize()
+			})
+			
+			// handle resize
+			window.addEventListener('resize', function(){
+				onResize()
+			})
+			function onResize(){
+				arToolkitSource.onResize()
+				arToolkitSource.copySizeTo(renderer.domElement)	
+				if( arToolkitContext.arController !== null ){
+					arToolkitSource.copySizeTo(arToolkitContext.arController.canvas)	
+				}
+			}
 
-function init() {
+			arToolkitContext = new THREEx.ArToolkitContext({
+				cameraParametersUrl: THREEx.ArToolkitContext.baseURL + '../data/data/camera_para.dat',
+				detectionMode: 'mono',
+				maxDetectionRate: 30,
+				canvasWidth: 80*3,
+				canvasHeight: 60*3,
+			})
+			// initialize it
+			arToolkitContext.init(function onCompleted(){
+				// copy projection matrix to camera
+				camera.projectionMatrix.copy( arToolkitContext.getProjectionMatrix() );
+			})
 
-	// init renderer
-	renderer	= new THREE.WebGLRenderer({
-		// antialias	: true,
-		alpha: true
-	});
-	renderer.setClearColor(new THREE.Color('lightgrey'), 0)
-	// renderer.setPixelRatio( 1/2 );
-	renderer.setSize( window.innerWidth, window.innerHeight );
-	renderer.domElement.style.position = 'absolute'
-	renderer.domElement.style.top = '0px'
-	renderer.domElement.style.left = '0px'
-	document.body.appendChild( renderer.domElement );
+			markerHiro = addMarkerHiro();
+			scene.add(markerHiro);
+		}
+			
+		function addMarkerHiro(){
+			const markerRoot = new THREE.Group();
 
-	stats = new Stats();
-	document.body.appendChild( stats.dom );
+			new THREEx.ArMarkerControls(arToolkitContext, markerRoot, {
+				type : 'pattern',
+				patternUrl : THREEx.ArToolkitContext.baseURL + '../data/data/patt.hiro'
+			})
 
-	// init scene and camera
-	scene	= new THREE.Scene();
-	
-	// Create a BASIC camera
-	camera = new THREE.Camera();
-	scene.add(camera);
+			const ball = new THREE.Mesh(new THREE.SphereGeometry(0.2, 20, 20), new THREE.MeshNormalMaterial());
+			markerRoot.add(ball);
 
-	////////////////////////////////////////////////////////////////////////////////
-	//          handle arToolkitSource
-	////////////////////////////////////////////////////////////////////////////////
+			const cylinder = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.25, 32), new THREE.MeshBasicMaterial({ color: 0x0000ff }));
+			cylinder.position.y = 1;
+			markerRoot.add(cylinder);
 
-	arToolkitSource = new THREEx.ArToolkitSource({
-		// to read from the webcam 
-		sourceType : 'webcam',
-	})
+			const grid = new THREE.GridHelper(1, 20, 'red', 'white');
+			markerRoot.add(grid);
 
-	arToolkitSource.init(function onReady(){
-		onResize()
-	})
-	
-	// handle resize
-	window.addEventListener('resize', function(){
-		onResize()
-	})
-	function onResize(){
-		arToolkitSource.onResize()	
-		arToolkitSource.copySizeTo(renderer.domElement)	
-		if( arToolkitContext.arController !== null ){
-			arToolkitSource.copySizeTo(arToolkitContext.arController.canvas)	
-		}	
-	}
-	////////////////////////////////////////////////////////////////////////////////
-	//          initialize arToolkitContext
-	////////////////////////////////////////////////////////////////////////////////
-	
-	arToolkitContext = new THREEx.ArToolkitContext({
-		cameraParametersUrl: THREEx.ArToolkitContext.baseURL + '../data/data/camera_para.dat',
-		detectionMode: 'mono',
-		maxDetectionRate: 30,
-		canvasWidth: 80*3,
-		canvasHeight: 60*3,
-	})
-	// initialize it
-	arToolkitContext.init(function onCompleted(){
-		// copy projection matrix to camera
-		camera.projectionMatrix.copy( arToolkitContext.getProjectionMatrix() );
-	})
+			return markerRoot;
+		}
 
-	markerHiro = addMarkerHiro();
-	scene.add (markerHiro); 
-	
-}
-	
-function addMarkerHiro(){
-	let markerRoot = new THREE.Group()
+		function animate() {
+			requestAnimationFrame(animate);
+			stats.update();
+			
+			if(arToolkitSource.ready === false)	return
+			arToolkitContext.update(arToolkitSource.domElement);
 
-	var artoolkitMarker = new THREEx.ArMarkerControls(arToolkitContext, markerRoot, {
-		type : 'pattern',
-		patternUrl : THREEx.ArToolkitContext.baseURL + '../data/data/patt.hiro'
-	})
+			theta += 0.01;
+			const sinTheta = Math.sin(theta);
+			const cosTheta = Math.cos(theta);
 
-	var ball = new THREE.Mesh(new THREE.SphereGeometry(0.2, 20, 20), new THREE.MeshNormalMaterial());
-	markerRoot.add(ball);
-
-	var cylinder = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.25), new THREE.MeshBasicMaterial({ color: 0x0000ff }));
-	cylinder.position.y = 1;
-	markerRoot.add(cylinder);
-
-	var grid = new THREE.GridHelper(1, 5, 'red', 'white');
-	markerRoot.add(grid);
-	
-	return markerRoot;
-}	
-
-function animate() {
-	requestAnimationFrame (animate);
-	stats.update();
-	
-	if( arToolkitSource.ready === false )	return
-	arToolkitContext.update( arToolkitSource.domElement )
-
-	theta += 0.01;
-	const sinTheta = Math.sin(theta);
-	const cosTheta = Math.cos(theta);
-
-	markerHiro.children[0].position.set(0.5 * sinTheta, 0.5 * cosTheta, 0.1);
-	markerHiro.children[1].material.color.setHSL(0.5, Math.abs(cosTheta), 0.5);
-	markerHiro.children[1].position.set(0, cosTheta, 0);
-	
-	renderer.render (scene, camera);	
-}
-
-</script></body>
+			markerHiro.children[0].position.set(0.5 * sinTheta, 0.5 * cosTheta, 0.1);
+			markerHiro.children[1].material.color.setHSL(0.5, Math.abs(cosTheta), 0.5);
+			markerHiro.children[1].position.set(0, cosTheta, 0);
+			
+			renderer.render(scene, camera);
+		}
+	</script>
+</body>
