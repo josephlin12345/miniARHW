@@ -154,9 +154,9 @@ const onWindowResize = () => {
 
 function pickCompute(ndcX, ndcY) {
 	// use 2D algorithm
-	const d2To = (v1, v2) => Math.sqrt(v1 ** 2 + (v2 - (-5)) ** 2);
+	const d2To = (v1, v2) => Math.sqrt(v1 ** 2 + (v2 - (-7)) ** 2);
 	const dist = d2To(halfW * ndcX, halfH * ndcY);
-	if (dist < 1) {
+	if (dist < 2) {
 		isSpin = !isSpin;
 	}
 }
