@@ -15,7 +15,7 @@ const addMarker = () => {
 	return markerRoot;
 }
 
-function addArrow() {
+const addArrow = () => {
 	const arrow = new THREE.ArrowHelper(
 		new THREE.Vector3(0, 1, 0),
 		new THREE.Vector3(0, 0, 0),
@@ -28,7 +28,7 @@ function addArrow() {
 	return arrow;
 }
 
-function addCircle() {
+const addCircle = () => {
 	const group = new THREE.Group();
 	
 	const geometry0 = new THREE.CircleGeometry(0.5, 32, Math.PI/2, 2*Math.PI/3);
@@ -51,25 +51,25 @@ function addCircle() {
 	return group;
 }
 
-function toggle() {
+const toggle = () => {
 	isSpin = !isSpin;
 	document.getElementById('btn').innerText = isSpin ? 'stop' : 'spin';
 }
 
-function clamp (x, xLo, xHi) {
+const clamp = (x, xLo, xHi) => {
 	if (x < xLo) return xLo;
 	if (x > xHi) return xHi;
 	else return x;
 }
 
-function onMouseDown(event) {
+const onMouseDown = event => {
 	event.preventDefault();
 	const ndcX = (event.clientX / window.innerWidth) * 2 - 1;
 	const ndcY = -(event.clientY / window.innerHeight) * 2 + 1;
 	pickCompute(ndcX, ndcY);
 }
 
-function onTouchStart(event) {
+const onTouchStart = event => {
 	if (event.touches.length == 1) {
 		event.preventDefault();
 		const ndcX = (event.touches[0].pageX / window.innerWidth) * 2 - 1;
@@ -152,11 +152,11 @@ const onWindowResize = () => {
 	}
 }
 
-function pickCompute(ndcX, ndcY) {
+const pickCompute = (ndcX, ndcY) => {
 	// use 2D algorithm
-	const d2To = (v1, v2) => Math.sqrt(v1 ** 2 + (v2 - (-7)) ** 2);
+	const d2To = (v1, v2) => Math.sqrt(v1 ** 2 + (v2 - (-5)) ** 2);
 	const dist = d2To(halfW * ndcX, halfH * ndcY);
-	if (dist < 2) {
+	if (dist < 1) {
 		isSpin = !isSpin;
 	}
 }
