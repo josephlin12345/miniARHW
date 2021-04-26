@@ -1,6 +1,6 @@
 let camera, scene, cameraHUD, sceneHUD, renderer;
 let arToolkitSource, arToolkitContext;
-let marker, button, circle;
+let marker, button, circle, arrow;
 let halfH, halfW;
 let angle = 0;
 let isSpin = false;
@@ -117,7 +117,7 @@ const init = () => {
 		const loader = new THREE.TextureLoader();
 		loader.setCrossOrigin('');
 		loader.load(
-			'https://i.imgur.com/TEa3TVe.png',
+			'TEa3TVe.png',
 			texture => {
 				button = new THREE.Mesh(new THREE.CircleGeometry(1, 36), new THREE.MeshBasicMaterial({ map: texture }));
 				button.position.set(0, -5, 0);
@@ -130,7 +130,7 @@ const init = () => {
 	circle = addCircle();
 	marker.add(circle);
 
-	const arrow = addArrow();
+	arrow = addArrow();
 	marker.add(arrow);
 
 	const _iOSDevice = !!navigator.platform.match(/iPhone|iPod|iPad/);
@@ -177,7 +177,7 @@ const animate = () => {
 	omega = clamp(omega, 0, 3);
 
 	angle += omega * dt;
-	circle.rotation.z = angle;
+	arrow.rotation.z = angle;
 
 	const theta = angle % (2 * Math.PI) * (180 / Math.PI);
 	const text = document.getElementById('text');
