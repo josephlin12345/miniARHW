@@ -32,7 +32,6 @@ const init = () => {
   cannon.rotation.y = -Math.PI / 6;
 
   window.addEventListener('keydown', event => {
-    console.log(barrel.rotation.z);
     switch(event.key) {
       case 'ArrowRight':
         cannon.rotation.y -= Math.PI / 90;
