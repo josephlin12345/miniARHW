@@ -168,7 +168,7 @@ const init = () => {
 		const markerRoot = new THREE.Group();
 		new THREEx.ArMarkerControls(arToolkitContext, markerRoot, {
 			type : 'pattern',
-			patternUrl : THREEx.ArToolkitContext.baseURL + '../data/data/patt.hiro'
+			patternUrl : 'bomb.patt'
 		})
 		return markerRoot;
 	}
