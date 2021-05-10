@@ -104,10 +104,10 @@ const animate = () => {
   
 	let dt = clock.getDelta();
 
-	// Euler's method
-  vel.add(force.clone().multiplyScalar(dt));
-  pos.add(vel.clone().multiplyScalar(dt));
   if(ball) {
+    // Euler's method
+    vel.add(force.clone().multiplyScalar(dt));
+    pos.add(vel.clone().multiplyScalar(dt));
     ball.position.copy(pos);
     if(ball.position.y < 0) {
       scene.remove(ball);
